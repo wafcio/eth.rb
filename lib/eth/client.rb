@@ -451,7 +451,7 @@ module Eth
       raw_result = eth_call(params)["result"]
       types = func.outputs.map { |i| i.type }
       return nil if raw_result == "0x"
-      Eth::Abi.decode(types, raw_result)
+      Eth::Abi.decode(func.outputs, raw_result)
     end
 
     # Encodes function call payloads.

@@ -19,7 +19,7 @@ module Eth
 
   # Provide classes for contract function input.
   class Contract::FunctionInput
-    attr_accessor :type, :raw_type, :name
+    attr_accessor :type, :raw_type, :name, :components
 
     # Constructor of the {Eth::Contract::FunctionInput} class.
     #
@@ -28,6 +28,7 @@ module Eth
       @raw_type = data["type"]
       @type = Eth::Abi::Type.parse(data["type"], data["components"])
       @name = data["name"]
+      @components = data["components"]
     end
 
     # Returns complete types with subtypes, e.g., `uint256`.

@@ -111,24 +111,24 @@ module Eth
       #
       # @return [Integer] the size of the type; or nil if not available.
       def size
-        s = nil
+        return @size if @size
         if dimensions.empty?
           if !(["string", "bytes", "tuple"].include?(base_type) and sub_type.empty?)
-            s = 32
-          elsif base_type == "tuple" && components.none?(&:dynamic?)
-            s = components.sum(&:size)
+            @size = 32
+          elsif base_type == "tuple" && components.none? { |component| p "--- in none loop"; component.dynamic? }
+            @size = components.sum(&:size)
           end
         elsif dimensions.last != 0 && !nested_sub.dynamic?
-          s = dimensions.last * nested_sub.size
+          @size = dimensions.last * nested_sub.size
         end
-        @size ||= s
+        @size
       end
 
       # Helpes to determine whether array is of dynamic size.
       #
       # @return [Boolean] true if array is of dynamic size.
       def dynamic?
-        size.nil?
+        @is_dynamic ||= size.nil?
       end
 
       # Types can have nested sub-types in arrays.

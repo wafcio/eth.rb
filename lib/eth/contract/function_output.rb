@@ -19,7 +19,7 @@ module Eth
 
   # Provide classes for contract function output.
   class Contract::FunctionOutput
-    attr_accessor :type, :name
+    attr_accessor :type, :name, :components
 
     # Constructor of the {Eth::Contract::FunctionOutput} class.
     #
@@ -27,6 +27,7 @@ module Eth
     def initialize(data)
       @type = Eth::Abi::Type.parse(data["type"])
       @name = data["name"]
+      @components = data["components"]
     end
 
     # Returns complete types with subtypes, e.g., `uint256`.

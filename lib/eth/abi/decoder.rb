@@ -30,7 +30,7 @@ module Eth
       # @param arg [String] encoded type data string.
       # @return [String] the decoded data for the type.
       # @raise [DecodingError] if decoding fails for type.
-      def type(type, arg)
+      def type(type, arg, start_position = 0)
         if %w(string bytes).include?(type.base_type) and type.sub_type.empty?
           # Case: decoding a string/bytes
           if type.dimensions.empty?
@@ -39,10 +39,10 @@ module Eth
             raise DecodingError, "Wrong data size for string/bytes object" unless data.size == Util.ceil32(l)
 
             # decoded strings and bytes
-            data[0, l]
+            data[start_position, l]
             # Case: decoding array of string/bytes
           else
-            l = Util.deserialize_big_endian_to_int arg[0, 32]
+            l = Util.deserialize_big_endian_to_int arg[start_position, 32]
 
             # Decode each element of the array
             (1..l).map do |i|
@@ -59,13 +59,25 @@ module Eth
           raise NotImplementedError, "Decoding dynamic arrays with nested dynamic sub-types is not implemented for ABI." if nested_sub.dynamic?
 
           # decoded dynamic-sized arrays
-          (0...l).map { |i| type(nested_sub, arg[32 + nested_sub.size * i, nested_sub.size]) }
+          (start_position...l).map { |i| type(nested_sub, arg[32 + nested_sub.size * i, nested_sub.size]) }
         elsif !type.dimensions.empty?
           l = type.dimensions.first
           nested_sub = type.nested_sub
 
           # decoded static-size arrays
           (0...l).map { |i| type(nested_sub, arg[nested_sub.size * i, nested_sub.size]) }
+        elsif type.base_type == "tuple"
+          p type
+          p arg
+
+          start_position = -1
+          type.components.map do |component|
+            type(type, arg[start_position + 1, type.size], start_position + 1)
+
+            unless component.base_type == "tuple"
+              start_position += component.size
+            end
+          end
         else
 
           # decoded primitive types

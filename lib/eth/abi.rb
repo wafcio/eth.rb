@@ -70,17 +70,16 @@ module Eth
     # @param types [Array] the ABI to be decoded.
     # @param data [String] ABI data to be decoded.
     # @return [Array] the decoded ABI data.
-    def decode(types, data)
-
+    def decode(output_functions, data)
       # accept hex abi but decode it first
       data = Util.hex_to_bin data if Util.hex? data
 
       # parse all types
-      parsed_types = types.map { |t| Type.parse(t) }
+      parsed_types = output_functions.map { |function| Type.parse(function.type, function.components) }
 
       # prepare output data
-      outputs = [nil] * types.size
-      start_positions = [nil] * types.size + [data.size]
+      outputs = [nil] * output_functions.size
+      start_positions = [nil] * output_functions.size + [data.size]
       pos = 0
       parsed_types.each_with_index do |t, i|
         if t.dynamic?
@@ -102,9 +101,9 @@ module Eth
       end
 
       # add start position equal the length of the entire data
-      j = types.size - 1
+      j = output_functions.size - 1
       while j >= 0 and start_positions[j].nil?
-        start_positions[j] = start_positions[types.size]
+        start_positions[j] = start_positions[output_functions.size]
         j -= 1
       end
       raise DecodingError, "Not enough data for head" unless pos <= data.size

@@ -309,6 +309,111 @@ describe Abi do
       expect(Abi.encode ["bytes4"], ["\x80\xACX\xCD"]).to eq "\x80\xACX\xCD#{"\x00" * 28}"
       expect(Util.bin_to_hex Abi.encode ["bytes10"], ["1234567890".b]).to eq "3132333435363738393000000000000000000000000000000000000000000000"
     end
+
+    it "decode tuple - real case" do
+      raw_result = "0x0000000000000000000000000000000000000000000003e805122904203a1f40000000000000000000000000000000000000000003405558fbba87a59934836c0000000000000000000000000000000000000000035916da241e983253e8cdb500000000000000000000000000000000000000000001d031393954fdd6104e700000000000000000000000000000000000000000001019d5cdea798cf75d007d00000000000000000000000000000000000000000018d0bf423c03d8de00000000000000000000000000000000000000000000000000000000000000660dbb2200000000000000000000000053f7c5869a859f0aec3d334ee8b4cf01e3492f2100000000000000000000000060f6a45006323b97d97cb0a42ac39e2b757ada630000000000000000000000004e575cacb37bc1b5afec68a0462c4165a52689830000000000000000000000006724e923e4bb58fcdf7cee7a5e7bbb47b99c26470000000000000000000000000000000000000000000000000000000000000000"
+
+      abi = [
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "asset",
+              "type": "address"
+            }
+          ],
+          "name": "getReserveData",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "data",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct DataTypes.ReserveConfigurationMap",
+                  "name": "configuration",
+                  "type": "tuple"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "liquidityIndex",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "variableBorrowIndex",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "currentLiquidityRate",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "currentVariableBorrowRate",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint128",
+                  "name": "currentStableBorrowRate",
+                  "type": "uint128"
+                },
+                {
+                  "internalType": "uint40",
+                  "name": "lastUpdateTimestamp",
+                  "type": "uint40"
+                },
+                {
+                  "internalType": "address",
+                  "name": "aTokenAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "stableDebtTokenAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "variableDebtTokenAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "interestRateStrategyAddress",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint8",
+                  "name": "id",
+                  "type": "uint8"
+                }
+              ],
+              "internalType": "struct DataTypes.ReserveData",
+              "name": "",
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ].to_json
+
+      contract = Eth::Contract.from_abi(
+        abi: abi,
+        address: "0x3ea1e26a2119b038eaf9b27e65cdb401502ae7a4",
+        name: "SampleContract"
+      )
+
+      functions = contract.functions.first.outputs
+
+      Eth::Abi.decode(functions, raw_result)
+    end
   end
 
   describe "abicoder tests" do
